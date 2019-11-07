@@ -1,5 +1,8 @@
 %{
 #include <stdio.h>
+
+
+#include "defs.h"
 #include "parser.tab.h"
 extern YYSTYPE yylval;
     
@@ -8,88 +11,91 @@ int lineno = 0;
 
 /* Scanner using regex */  
 %%
-"==" {return EQUALS;}
-"!=" {return NOT_EQUALS;}
-"~=" {return NOT_EQUALS;}
+[ \t\v\r\n]+ { printf("NewLine\n");lineno++; } /* ignore whitespace */
 
-"<=" {return GTE;} /* Comp operaterors */
-">=" {return LTE;}
-"=<" {return GTE;}
-"=>" {return LTE;}
-"<" {return GT;}
-">" {return LT;}
+";" { printf("Token:%s\n",yytext);return SEMICOLON; }
+"==" {printf("Token:%s\n",yytext);return EQUALS;}
+"!=" {printf("Token:%s\n",yytext);return NOT_EQUALS;}
+"~=" {printf("Token:%s\n",yytext);return NOT_EQUALS;}
 
-"+=" {return UNI_ADD;} /* Urinary Operaters */
-"-=" {return UNI_MIN;}
-"*=" {return UNI_MUL;}
-"/=" {return UNI_DIV;}
-"%=" {return UNI_MOD;}
+"<=" {printf("Token:%s\n",yytext);return GTE;} /* Comp operaterors */
+">=" {printf("Token:%s\n",yytext);return LTE;}
+"=<" {printf("Token:%s\n",yytext);return GTE;}
+"=>" {printf("Token:%s\n",yytext);return LTE;}
+"<" {printf("Token:%s\n",yytext);return GT;}
+">" {printf("Token:%s\n",yytext);return LT;}
 
-"=+" {return UNI_ADD;} /* Urinary Operaters */
-"=-" {return UNI_MIN;}
-"=*" {return UNI_MUL;}
-"=/" {return UNI_DIV;}
-"=%" {return UNI_MOD;}
+"+=" {printf("Token:%s\n",yytext);return UNI_ADD;} /* Urinary Operaters */
+"-=" {printf("Token:%s\n",yytext);return UNI_MIN;}
+"*=" {printf("Token:%s\n",yytext);return UNI_MUL;}
+"/=" {printf("Token:%s\n",yytext);return UNI_DIV;}
+"%=" {printf("Token:%s\n",yytext);return UNI_MOD;}
 
-"+" {return ADD;} /* Operaters */
-"-" {return MIN;}
-"*" {return MUL;}
-"/" {return DIV;}
-"%" {return MOD;}
-"=" {return ASSIGN;}
+"=+" {printf("Token:%s\n",yytext);return UNI_ADD;} /* Urinary Operaters */
+"=-" {printf("Token:%s\n",yytext);return UNI_MIN;}
+"=*" {printf("Token:%s\n",yytext);return UNI_MUL;}
+"=/" {printf("Token:%s\n",yytext);return UNI_DIV;}
+"=%" {printf("Token:%s\n",yytext);return UNI_MOD;}
 
-"&&" {return COND_AND;} /* Conditional Expressions */
-"||" {return COND_OR;}
+"+" {printf("Token:%s\n",yytext);return ADD;} /* Operaters */
+"-" {printf("Token:%s\n",yytext);return MIN;}
+"*" {printf("Token:%s\n",yytext);return MUL;}
+"/" {printf("Token:%s\n",yytext);return DIV;}
+"%" {printf("Token:%s\n",yytext);return MOD;}
+"=" {printf("Token:%s\n",yytext);return ASSIGN;}
 
-"|" {return OP_OR;} /* Boolean operators */
-"&" {return OP_AND;}
-"~" {return OP_NOT;}
-"!" {return OP_NOT;}
+"&&" {printf("Token:%s\n",yytext);return COND_AND;} /* Conditional Expressions */
+"||" {printf("Token:%s\n",yytext);return COND_OR;}
 
-
-"," { return COMMA; } /* Syntax using brackets */
-";" { return SEMICOLON; }
-"(" { return OPEN_PAREN; }
-")" { return CLOSE_PAREN; }
-"[" { return OPEN_BRACKET; }
-"]" { return CLOSE_BRACKET; }
-"{" { return OPEN_BRACE; }
-"}" { return CLOSE_BRACE; }
+"|" {printf("Token:%s\n",yytext);return OP_OR;} /* Boolean operators */
+"&" {printf("Token:%s\n",yytext);return OP_AND;}
+"~" {printf("Token:%s\n",yytext);return OP_NOT;}
+"!" {printf("Token:%s\n",yytext);return OP_NOT;}
 
 
-"if" {return IF;} /* Condition statements */  
-"elif" {return ELIF;}
-"else" {return ELSE;}
-
-"for" {return FOR;} /* Loop statements */
-"while" {return WHILE;} /* Loop statements */
-"break" {return BREAK;}
-"continue" {return CONTINUE;}
-
-"int" {return INT_DATA_TYPE;} /* Numeric Datatypes statements */
-"float" {return FLOAT_DATA_TYPE;}
-
-"char" {return CHAR_DATA_TYPE;} /* Character Datatypes statements */
-"string" {return STRING_DATA_TYPE;}
-
-"bool" {return BOOL_DATA_TYPE;} /* Boolean Datatypes statements */
-
-"def" {return FUNCTION_DEC;}
-"import" {return IMPORT;} /* Import function */
+"," { printf("Token:%s\n",yytext);return COMMA; } /* Syntax using brackets */
+"(" { printf("Token:%s\n",yytext);return OPEN_PAREN; }
+")" { printf("Token:%s\n",yytext);return CLOSE_PAREN; }
+"[" { printf("Token:%s\n",yytext);return OPEN_BRACKET; }
+"]" { printf("Token:%s\n",yytext);return CLOSE_BRACKET; }
+"{" { printf("Token:%s\n",yytext);return OPEN_BRACE; }
+"}" { printf("Token:%s\n",yytext);return CLOSE_BRACE; }
 
 
-(true)|(false) {return BOOL;}
-[a-zA-z][a-zA-Z0-9]* {return ID;}
+"if" {printf("Token:%s\n",yytext);return IF;} /* Condition statements */  
+"elif" {printf("Token:%s\n",yytext);return ELIF;}
+"else" {printf("Token:%s\n",yytext);return ELSE;}
 
-[+-]?[0-9]+  {return INT;}
-[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+) {return FLOAT;}
+"for" {printf("Token:%s\n",yytext);return FOR;} /* Loop statements */
+"while" {printf("Token:%s\n",yytext);return WHILE;} /* Loop statements */
+"break" {printf("Token:%s\n",yytext);return BREAK;}
+"continue" {printf("Token:%s\n",yytext);return CONTINUE;}
+
+"int" {printf("Token:%s\n",yytext);return INT_DATA_TYPE;} /* Numeric Datatypes statements */
+"float" {printf("Token:%s\n",yytext);return FLOAT_DATA_TYPE;}
+
+"char" {printf("Token:%s\n",yytext);return CHAR_DATA_TYPE;} /* Character Datatypes statements */
+"string" {printf("Token:%s\n",yytext);return STRING_DATA_TYPE;}
+
+"bool" {printf("Token:%s\n",yytext);return BOOL_DATA_TYPE;} /* Boolean Datatypes statements */
+
+"def" {printf("Token:%s\n",yytext);return FUNCTION_DEC;}
+"return" {printf("Token:%s\n",yytext);return RETURN;}
+"import" {printf("Token:%s\n",yytext);return IMPORT;} /* Import function */
+"class" {printf("Token:%s\n",yytext);return CLASS;} /* Import function */
 
 
-(0x[0-9a-fA-F]+)|([0-9]+) {return HEXAGON;}
+(true)|(false) {printf("Token:%s\n",yytext);return BOOL;}
+[a-zA-z][a-zA-Z0-9]* {printf("ID:%s\n",yytext);return ID;}
 
-"\""[^\"]"\"" {return CHAR;}
-"\""[^\"]*"\"" {return STRING;}
-[ \t\v\r\n]+ {  } /* ignore whitespace */
+[+-]?[0-9]+  {printf("INT:%s\n",yytext);return INT;}
+[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+) {printf("Float:%s\n",yytext);return FLOAT;}
+
+
+(0x[0-9a-fA-F]+)|([0-9]+) {printf("Token:%s\n",yytext);return HEXAGON;}
+
+"\""[^\"]"\"" {printf("Token:%s\n",yytext);return CHAR;}
+"\""[^\"]*"\"" {printf("Token:%s\n",yytext);return STRING;}
 "//".* { } /* ignore comments */ 
 . { printf("Unknown character %c cannot parse it.\n", *yytext); }
 

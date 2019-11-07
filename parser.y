@@ -40,7 +40,7 @@ int yylex(void);
 
 %token ID INT FLOAT HEXAGON CHAR STRING BOOL 
 
-%token IMPORT FUNCTION_DEC
+%token CLASS IMPORT FUNCTION_DEC RETURN /* Function and class definations */
 
 // Left Associativity
 %left EQUALS NOT_EQUALS
@@ -61,27 +61,43 @@ Block: /* Do nothing*/ {;}
 ; 
 
 Line: Import_Statement SEMICOLON{;}
+| Class_defination SEMICOLON {;}
 | Function_defination SEMICOLON{;}
 | Assign SEMICOLON
 | Expr SEMICOLON {;}
 | Cond SEMICOLON {;}
-| Loop SEMICOLON {;}
+| Loop1 SEMICOLON {;}
+| Loop2 SEMICOLON {;}
+| Return_data SEMICOLON {;}
+| BREAK SEMICOLON {;}
+| CONTINUE SEMICOLON {;}
 ;
 
 Import_Statement: IMPORT ID_LIST {;}
 ;
 
+Class_defination: CLASS ID OPEN_BRACE Block CLOSE_BRACE {;}
+
 Function_defination: FUNCTION_DEC ID OPEN_PAREN Parameter_list CLOSE_PAREN
-OPEN_BRACKET Block CLOSE_BRACKET {;}
+OPEN_BRACE Block CLOSE_BRACE {;}
+;
+
+Return_data: RETURN Expr {;}
+| RETURN {;}
 ;
 
 Assign: ID ASSIGN Expr {;}
-| Datatype ID Assign Expr {;}
-;
+| ID OPEN_BRACKET Expr CLOSE_BRACKET ASSIGN Expr {;}
+| Datatype ID {;}
+| Datatype ID Assign Expr {;} 
+| Datatype ID OPEN_BRACKET Expr CLOSE_BRACKET {;}
+| Datatype ID OPEN_BRACKET Expr CLOSE_BRACKET ASSIGN Expr {;}
+; 
 
 // Causing Shift reduce conflict
-Expr: ID {;}
-| ID OPEN_PAREN ID_LIST CLOSE_BRACKET {;} 
+Expr: ID {;} /* Value */ 
+| ID OPEN_BRACKET Expr OPEN_BRACKET {;} /* Array */ 
+| ID OPEN_PAREN ID_LIST CLOSE_PAREN {;} /* Function */ 
 | OPEN_PAREN Expr CLOSE_PAREN {;}
 | INT {;}
 | CHAR {;}
@@ -103,21 +119,20 @@ Expr: ID {;}
 | MIN Expr  {;}
 ;
 
-Cond: IF_list Elif_list Else_list {;};
+Cond: IF_list Else_list {;};
 
-IF_list: IF OPEN_PAREN Expr CLOSE_PAREN Run_Condition 
+Run_Condition: Line | OPEN_BRACE Block CLOSE_BRACE;
 
-Elif_list: 
-| ELIF OPEN_PAREN Expr CLOSE_PAREN Run_Condition Elif_list  
+IF_list: IF OPEN_PAREN Expr CLOSE_PAREN Run_Condition {;}
+
+Else_list: /* Do nothing */ {;} 
+| ELSE  Run_Condition {;}
 ;
 
-Else_list: 
-| ELSE OPEN_PAREN Expr CLOSE_PAREN Run_Condition;
-
-Run_Condition: Line | OPEN_BRACKET Block CLOSE_BRACKET;
 
 
-Loop: WHILE OPEN_PAREN Expr CLOSE_PAREN Run_Condition;
+Loop1: WHILE OPEN_PAREN Expr CLOSE_PAREN Run_Condition;
+Loop2: FOR OPEN_PAREN Assign SEMICOLON Expr SEMICOLON Assign CLOSE_PAREN Run_Condition
 
 Parameter_list: /* Do nothing*/ {;}
 | Datatype ID {;}
