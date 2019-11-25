@@ -1,0 +1,14 @@
+class Program {
+	def retvoid(int z, int p) {
+		return x;
+	};
+	def fib(int x) {
+		return 2*x;
+	};
+	def main(int x) {
+		int z;
+		z = 7;
+		x = 9;
+		return 3 + 4 + 7 * 2 * 3/z + fib(x);
+	};
+};

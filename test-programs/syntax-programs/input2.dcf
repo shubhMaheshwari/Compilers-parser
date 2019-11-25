@@ -1,0 +1,5 @@
+class Program {
+  int main() {
+    a[0] = 12;
+  }
+}

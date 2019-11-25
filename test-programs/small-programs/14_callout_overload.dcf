@@ -1,0 +1,6 @@
+class Program {
+  int main() {
+    callout("printf", "%d", 1);
+    callout("printf", "\nsdfasdf");
+  }
+}

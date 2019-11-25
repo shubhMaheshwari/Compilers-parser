@@ -1,0 +1,18 @@
+class Program {
+	def main() {
+		int x;
+		if (1 >= 2) {
+			return 1;
+		} else {
+			if (2 >= 3) {
+				return 2;
+				x = 12 + 123 - 213412 - 34214 - 3214 - 313;
+			} else {
+				x = 9;
+				return x;
+			};
+			x = 1243;
+		};
+		return x;
+	};
+};

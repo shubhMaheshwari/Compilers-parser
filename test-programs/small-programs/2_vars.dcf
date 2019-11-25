@@ -1,0 +1,6 @@
+class Program {
+  def main(int x) {
+	int z;
+	return 3 + 4 + 7 * 2 * 3;
+  };
+};

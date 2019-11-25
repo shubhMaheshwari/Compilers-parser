@@ -1,0 +1,25 @@
+class Program {
+  int a[100], b, c;
+  boolean d, e[1000], f;
+  void main() {
+    a[0] = 12;
+    test(1, 2, 3 + 4, a + c - d + 1 * foo(1, 2, 3));
+    b -= d / t;
+    c += q * r + callout("scanf test", "asdfas", 1 ,2 ,3, 4);
+    if (asdfa > zxc) {
+      a += asfd;
+      a -= asdf;
+      continue;
+    } else {
+      c -= asdfasdfasdf12312;
+      c += bar12312;
+      break;
+    }
+    for i = asdfasdf, 7-8+9 {
+      x = i;
+      if (i % 3 == 0) {
+        return i;
+      }
+    }
+  }
+}
