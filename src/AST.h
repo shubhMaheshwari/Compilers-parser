@@ -148,15 +148,44 @@ class Visitor{
 		virtual void visit(class BreakNode*){};
 };
 
+class SemanticVisitor: public Visitor{
+	public:
+		// Visitor for each node
+		void visit(class RootNode*);
+		void visit(class BlockNode*);
+		void visit(class ParameterNode*);
+		void visit(class ParameterListNode*);
+		void visit(class LocationNode*);
+		void visit(class LineNode*);
+		void visit(class ExprNode*);
+		void visit(class ExprListNode*);
+		void visit(class LiteralNode*);
+		void visit(class VariableNode*);
+		void visit(class VariableListNode*);
+		void visit(class CallMethodNode*);
+		void visit(class BinaryOperationNode*);
+		void visit(class NotOperationNode*);
+		void visit(class ImportNode*);
+		void visit(class ClassNode*);
+		void visit(class FunctionNode*);
+		void visit(class AssignNode*);
+		void visit(class DeclarationNode*);
+		void visit(class IfNode*);
+		void visit(class ElseNode*);
+		void visit(class CondNode*);
+		void visit(class WhileNode*);
+		void visit(class ForNode*);
+		void visit(class ReturnNode*);
+		void visit(class ContinueNode*);
+		void visit(class BreakNode*);
+		
+		SemanticVisitor(){};
+};
+
 enum class Op{
 	ADD,MIN,MUL,DIV,MOD,COND_AND,COND_OR,OP_OR,OP_AND,OP_NOT,EQUALS,NOT_EQUALS,GTE,LTE,GT,LT 
 };
 string OpToString(Op);
-
-enum class AssignOp {
-  UNI_ADD,UNI_MIN,UNI_MUL,UNI_DIV,UNI_MOD
-};
-string AssignOpToString(AssignOp);
 
 // Base Class defination
 class BaseNode{

@@ -242,14 +242,15 @@ Expr_List: /* Do nothing */ {$$ = new ExprListNode();}
 
 
 %%
-
-
-
 int main(int argc, char **argv)
 {
-        yyparse();
-        printf("Parsing Over\nCreating AST\n");
+		
+		yyparse();
+		// Semantic Check and print
+		class SemanticVisitor* svisitor = new SemanticVisitor();
+		svisitor->visit(rootAst);
 
-        class MainVisitor* visitor = new MainVisitor();
-        visitor->visit(rootAst);
+		class MainVisitor* visitor = new MainVisitor();
+		visitor->visit(rootAst);
+
 }

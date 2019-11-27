@@ -186,25 +186,6 @@ NotOperationNode::NotOperationNode(class ExprNode* expr){
 	this->expr = expr;
 }
 
-// Define operation to print
-std::string AssignOpToString(AssignOp op) {
-  switch (op) {
-    
-    case AssignOp::UNI_ADD:
-    	return "+=";
-    case AssignOp::UNI_MIN:
-    	return "-=";
-    case AssignOp::UNI_MUL:
-    	return "*=";
-    case AssignOp::UNI_DIV:
-    	return "/=";
-    case AssignOp::UNI_MOD:
-    	return "%=";
-    default:
-      return "Operation Not defined";
-  }
-}
-
 // Assign Variable
 AssignNode::AssignNode(class LocationNode* variable_name,string* op,class ExprNode* expr){
 	this->variable_name = variable_name;
