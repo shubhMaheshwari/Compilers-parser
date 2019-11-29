@@ -83,7 +83,7 @@ int errors=0;
 %type <location_node> Location;
 
 // Expression Nodes
-%type <variable_list_node> ID_LIST;
+%type <location_list_node> ID_LIST;
 
 // Condition
 %type <cond_node> Cond;
@@ -124,22 +124,24 @@ Line: Import_Statement SEMICOLON	{$$ = $1;}
 ;
 
 //[TODO]
-Import_Statement: IMPORT ID_LIST {$$ = new ImportNode($2);}
+Import_Statement: IMPORT Expr_List {$$ = new ImportNode($2);}
 ;
 
 Class_defination: CLASS ID OPEN_BRACE Block CLOSE_BRACE {$$ = new ClassNode($2,$4);} 
 ;
 
-Declaration: Datatype ID_LIST { $$ = new DeclarationNode($2);};
+Declaration: Datatype ID_LIST { $$ = new DeclarationNode($1,$2);};
 
 //[TODO]
-Function_defination: FUNCTION_DEC ID OPEN_PAREN Parameter_list CLOSE_PAREN OPEN_BRACE Block CLOSE_BRACE {$$ = new FunctionNode($2,$4,$7);} 
+Function_defination: Datatype ID OPEN_PAREN Parameter_list CLOSE_PAREN OPEN_BRACE Block CLOSE_BRACE {$$ = new FunctionNode($1, $2,$4,$7);} 
 ;
 
 // [TODO] => Unable to add parameters inside a list
 Parameter_list: /* Do nothing*/ {$$ = new ParameterListNode();}
-| Datatype ID { $$ = new ParameterListNode();$$->push_back($1,$2);}
-| Parameter_list COMMA Datatype ID   { $$ = $1; $$->push_back($3,$4); }
+| Datatype ID { $$ = new ParameterListNode();$$->push_back($1,$2,false);}
+| Datatype ID OPEN_BRACKET CLOSE_BRACKET { $$ = new ParameterListNode();$$->push_back($1,$2,true);}
+| Parameter_list COMMA Datatype ID  { $$ = $1; $$->push_back($3,$4,false); }
+| Parameter_list COMMA Datatype ID  OPEN_BRACKET CLOSE_BRACKET { $$ = $1; $$->push_back($3,$4,true); }
 ;
 
 //[TODO]
@@ -158,9 +160,9 @@ Assign: Location Assign_Op Expr {$$ = new AssignNode($1,$2,$3);}
 ;
 
 Location: ID 									{$$ = new LocationNode($1);}
-| ID OPEN_BRACKET Expr CLOSE_BRACKET			{$$ = new LocationNode($1,$3);}
+| ID OPEN_BRACKET INT CLOSE_BRACKET			{$$ = new LocationNode($1,$3);}
 | Datatype ID 									{$$ = new LocationNode($1,$2);}
-| Datatype ID OPEN_BRACKET Expr CLOSE_BRACKET 	{$$ = new LocationNode($1,$2,$4);}
+| Datatype ID OPEN_BRACKET INT CLOSE_BRACKET 	{$$ = new LocationNode($1,$2,$4);}
 ;
 
 Assign_Op: ASSIGN 	{$$ = $1;}
@@ -172,7 +174,7 @@ Assign_Op: ASSIGN 	{$$ = $1;}
 ;
 
 // Causing Shift reduce conflict
-Expr: ID { $$ = new VariableNode($1); } /* Value */ 
+Expr: ID { $$ = new VariableNode($1,false); } /* Value */ 
 | ID OPEN_BRACKET Expr CLOSE_BRACKET { $$ = new VariableNode($1,$3);} /* Array */ 
 | ID OPEN_PAREN Expr_List CLOSE_PAREN {$$ = new CallMethodNode($1,$3);} /* Function */ 
 | OPEN_PAREN Expr CLOSE_PAREN { $$ = $2;}
@@ -228,10 +230,11 @@ Datatype: INT_DATA_TYPE {$$ = $1;}
 ;
 
 
-ID_LIST: /* Do nothing */ {$$ = new VariableListNode();}
+ID_LIST: /* Do nothing */ {$$ = new LocationListNode();}
 | ID_LIST COMMA ID   {$$ = $1; $$->push_back($3);}
-| ID OPEN_BRACKET Expr CLOSE_BRACKET {$$ = new VariableListNode(); $$->push_back($1,$3);} 
-| ID {$$ = new VariableListNode();$$->push_back($1);}
+| ID_LIST COMMA ID OPEN_BRACKET INT CLOSE_BRACKET {$$ = $1; $$->push_back($3,$5);}
+| ID OPEN_BRACKET INT CLOSE_BRACKET {$$ = new LocationListNode(); $$->push_back($1,$3);} 
+| ID {$$ = new LocationListNode();$$->push_back($1);}
 ;
 
 Expr_List: /* Do nothing */ {$$ = new ExprListNode();}

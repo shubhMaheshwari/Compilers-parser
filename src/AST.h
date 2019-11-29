@@ -17,7 +17,6 @@ union Node{
 	class BlockNode* block_node;
 
 	// Parameter
-	class ParameterNode* parameter_node;
 	class ParameterListNode* parameter_list;
 
 	// Line
@@ -38,11 +37,11 @@ union Node{
 
 	// Location/Defination
 	class LocationNode* location_node;		 
+	class LocationListNode* location_list_node;
 
 	// Expression Nodes
 	class LiteralNode* literal_node;
 	class VariableNode* variable_node;
-	class VariableListNode* variable_list_node;
 
 	// Function Call 
 	class CallMethodNode* call_method_node;
@@ -65,7 +64,6 @@ union Node{
 		block_node = NULL; 
 
 		// Parameter List
-		parameter_node = NULL;
 		parameter_list = NULL;
 
 		// Line
@@ -86,12 +84,13 @@ union Node{
 
 		// Assign Node
 		assign_node = NULL;
+		location_node = NULL;
+		location_list_node = NULL;
 
 		// Expression Nodes
 		expr_node = NULL;
 		literal_node = NULL;
 		variable_node = NULL;
-		variable_list_node = NULL;
 
 		// Function Call 
 		call_method_node = NULL;
@@ -121,15 +120,14 @@ class Visitor{
 
 		virtual void visit(class RootNode*){};
 		virtual void visit(class BlockNode*){};
-		virtual void visit(class ParameterNode*){};
 		virtual void visit(class ParameterListNode*){};
 		virtual void visit(class LocationNode*){};
+		virtual void visit(class LocationListNode*){};
 		virtual void visit(class LineNode*){};
 		virtual void visit(class ExprNode*){};
 		virtual void visit(class ExprListNode*){};
 		virtual void visit(class LiteralNode*){};
 		virtual void visit(class VariableNode*){};
-		virtual void visit(class VariableListNode*){};
 		virtual void visit(class CallMethodNode*){};
 		virtual void visit(class BinaryOperationNode*){};
 		virtual void visit(class NotOperationNode*){};
@@ -153,15 +151,14 @@ class SemanticVisitor: public Visitor{
 		// Visitor for each node
 		void visit(class RootNode*);
 		void visit(class BlockNode*);
-		void visit(class ParameterNode*);
 		void visit(class ParameterListNode*);
 		void visit(class LocationNode*);
+		void visit(class LocationListNode*);
 		void visit(class LineNode*);
 		void visit(class ExprNode*);
 		void visit(class ExprListNode*);
 		void visit(class LiteralNode*);
 		void visit(class VariableNode*);
-		void visit(class VariableListNode*);
 		void visit(class CallMethodNode*);
 		void visit(class BinaryOperationNode*);
 		void visit(class NotOperationNode*);
@@ -227,22 +224,13 @@ class BlockNode:public BaseNode{
 };
 
 
-// Parameter List
-class ParameterNode:public BaseNode{
-	public:
-		void accept(Visitor* v) { v->visit(this); };
-		string* name;		// Store the name of the parameter
-		string* datatype;	// Store the datatype
-		ParameterNode(string* datatype, string* name);
-};
-
 // Parameter
 class ParameterListNode:public BaseNode{
 	public:
 		void accept(Visitor* v) { v->visit(this); };
-		vector<class ParameterNode*> parameter_list;
+		vector<class LocationNode*> parameter_list;
 		ParameterListNode(){};
-		void push_back(string* datatype, string* name);
+		void push_back(string* datatype, string* name, bool);
 };
 
 // Defination Node
@@ -251,13 +239,13 @@ class LocationNode:public BaseNode{
 		void accept(Visitor* v) { v->visit(this); };
 
 		string* datatype;
-		string* name;
-		class ExprNode* array_location; 
+		class VariableNode* variable;
+		int array_size; 
 
 		LocationNode(string*);
-		LocationNode(string*,class ExprNode*);
+		LocationNode(string*, int);
 		LocationNode(string*,string*);
-		LocationNode(string*,string*,class ExprNode*);
+		LocationNode(string*,string*, int);
 };
 
 
@@ -309,19 +297,19 @@ class VariableNode:public ExprNode{
 		bool is_array; 
 		string* name;
 		class ExprNode* array_location; 
-		VariableNode(string*); 
+		VariableNode(string*,bool); 
 		VariableNode(string*,class ExprNode*); 
 };
 
-class VariableListNode:public ExprNode{
+class LocationListNode:public ExprNode{
 	// Variable used in an expression
 	public:
 		void accept(Visitor* v) { v->visit(this); };
-		vector<class VariableNode*> variable_list;
-		VariableListNode(){};
+		vector<class LocationNode*> location_list;
+		LocationListNode(){};
 
 		void push_back(string*); 
-		void push_back(string*, class ExprNode*); 
+		void push_back(string*, int); 
 };
 
 class CallMethodNode:public ExprNode{
@@ -356,8 +344,8 @@ class NotOperationNode:public ExprNode{
 class ImportNode:public LineNode{
 	public:
 		void accept(Visitor* v) { v->visit(this); };
-		class VariableListNode* import_list;
-		ImportNode(class VariableListNode*);
+		class ExprListNode* import_list;
+		ImportNode(class ExprListNode*);
 };
 
 
@@ -374,18 +362,19 @@ class ClassNode:public LineNode{
 class FunctionNode:public LineNode{
 	public:
 		void accept(Visitor* v) { v->visit(this); };
-		string* name; 
+		string* name;
+		string* return_type; 
 		class ParameterListNode* parameter_list;
 		class BlockNode* block;
 
-		FunctionNode(string*, class ParameterListNode*, class BlockNode*);
+		FunctionNode(string*, string*, class ParameterListNode*, class BlockNode*);
 };
 
 // Assign defination 
 class AssignNode:public LineNode{
 	public:
 		void accept(Visitor* v) { v->visit(this); };
-		class LocationNode* variable_name;
+		class LocationNode* location;
 		string* op;
 		class ExprNode* value;
 		AssignNode(class LocationNode*,string*,class ExprNode*);
@@ -395,8 +384,9 @@ class AssignNode:public LineNode{
 class DeclarationNode:public LineNode{
 	public:
 		void accept(Visitor* v) { v->visit(this); };
-		class VariableListNode* variable_list;
-		DeclarationNode(class VariableListNode*);
+		string* datatype;
+		class LocationListNode* location_list;
+		DeclarationNode(string* ,class LocationListNode*);
 };
 
 // If-Else 

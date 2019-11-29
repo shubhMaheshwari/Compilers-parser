@@ -31,11 +31,33 @@ unsigned int while_loop_number=0;
 // Method to log errors
 Value *LogErrorV(const char *Str) {
   fprintf(stderr,"[CodeGenerationError]:%s\n",Str);
+ 	
   return nullptr;
 }
 
+llvm::Constant* TypeToDefaultValue(string datatype) {
+	if(datatype[0]=='i'){
+		return ConstantInt::get(Context, APInt(32,0,true));
+	}
 
-// Convert string varianle to LLVM variable type
+	else if(datatype[0]=='f'){
+		return ConstantInt::get(Context, APInt(64,0.0,true));
+	}
+
+	else if(datatype[0]=='c'){
+		return ConstantInt::get(Context, APInt(8, 0, false));
+	}
+	
+	else if(datatype[0]=='s'){
+		return ConstantInt::get(Context, APInt(64, StringRef("0"), false));
+	}
+	else{
+		LogErrorV("Type not defined");
+	}
+}
+
+
+// Convert string variable to LLVM variable type
 llvm::Type* TypeToLLVMType(string t) {
   if (t[0] == 'i') {		//int
 	return llvm::Type::getInt32Ty(Context);
@@ -125,7 +147,7 @@ void GenErrorAndExitInst(const std::string& error) {
 }
 
 // Finding index in array
-Value* MainVisitor::GEPFromLocationNode(LocationNode *node) {
+Value* MainVisitor::GEPFromLocationNode(VariableNode *node) {
 	if (node->array_location == nullptr) {
 		if (vars[*(node->name)].second->isArrayTy()) {
 			return Builder.CreateGEP(vars[*(node->name)].first, ArrayRef<Value *>({GetConstIntN(32, 0), GetConstIntN(32, 0)}), "pointer_to_start_of_array");
@@ -200,7 +222,6 @@ void MainVisitor::visit(class RootNode* node){
 	// Create all nodes
 	node->block->accept(this);
 
-
   	InitializeAllTargetInfos();
   	InitializeAllTargets();
   	InitializeAllTargetMCs();
@@ -259,34 +280,23 @@ void MainVisitor::visit(class RootNode* node){
 	// Print errors 
 	printf("===============================LLVM Generated Code=======================\n");
 
-	MainModule->print(errs(), nullptr);
+	MainModule->print(outs(), nullptr);
 	printf("=========================================================================\n");
 }
 
 void MainVisitor::visit(class BlockNode* node){
 
 	VarTable shadow_list;
-	// [TODO]: What is this ? 
-	// for (Var v : node->var_decls) {
-	// 	auto type = TypeToLLVMType(v.type);
-	// 	AllocaInst *alloca = CreateEntryBlockAlloca(CurrentFunction(),
-	// 		type, v.id);
-	// 	AddScopedVar(v.id, {alloca, type}, shadow_list);
-	// 	Builder.CreateStore(TypeToDefaultValue(v.type), alloca);
-	// }
-
 	// Iterate over all root node lines 
 	for (auto x : node->line_list){ 
 		x->accept(this);
-		if (CurrentBlockDone()) {
-			break; // no code paths to this location.
-		}
+		// if (CurrentBlockDone()) {
+		// 	break; // no code paths to this location.
+		// }
 	}
 
 	// [TODO]: Nothing to restore
 	RestoreShadowedVars(shadow_list);
-}
-void MainVisitor::visit(class ParameterNode* node){
 }
 
 void MainVisitor::visit(class ParameterListNode* node){
@@ -297,29 +307,36 @@ void MainVisitor::visit(class ParameterListNode* node){
 }
 
 void MainVisitor::visit(class LocationNode* node){
-
-	// Create the variable if not defined
-
-	Value* elem_ptr = GEPFromLocationNode(node);
-	if (!elem_ptr) {
-		LogErrorV("elem_ptr is null!\n");
-		return;
+	VarTable shadow_list;
+	Type *type;
+	Constant *constant;
+	if(!node->datatype){
+		if(vars.count(*(node->variable->name)) >0){
+			type = vars[*(node->variable->name)].second;
+			constant = TypeToDefaultValue("i");
+		}
+		else{
+			string no_init_err = "Variable " + *(node->variable->name) + "  not initilizated";
+			LogErrorV(no_init_err.c_str());
+		}
 	}
-	if (vars[*(node->name)].second->isArrayTy() && node->array_location == nullptr) {
-		ret = elem_ptr;
+	else{
+		type = TypeToLLVMType(*(node->datatype));
+		constant = TypeToDefaultValue(*(node->datatype) );
+
+	}
+	GlobalVariable *ptr;
+	if (node->variable->is_array) {
+		type = ArrayType::get(type, node->array_size);
+		ptr = (GlobalVariable*) MainModule->getOrInsertGlobal(*(node->variable->name), type);
+		ptr->setInitializer(ConstantArray::get((llvm::ArrayType*)type,
+		ArrayRef<Constant *>(std::vector<Constant*> (node->array_size, constant ))));
+
 	} else {
-		ret = Builder.CreateLoad(elem_ptr, *(node->name) + (node->array_location != nullptr ? "[]" : ""));
+		ptr = (GlobalVariable*) MainModule->getOrInsertGlobal(*(node->variable->name), type);
+		ptr->setInitializer(constant);
 	}
-
-	// TODO
-	if(node->array_location)
-		array_lengths[*(node->name)] = 1000;
-		// array_lengths[*(node->name)] = node->array_location->accept(this);
-}
-void MainVisitor::visit(class LineNode* node){
-}
-
-void MainVisitor::visit(class ExprNode* node){
+	AddScopedVar(*(node->variable->name), {ptr, type}, shadow_list);
 }
 
 void MainVisitor::visit(class ExprListNode* node){
@@ -352,24 +369,29 @@ void MainVisitor::visit(class LiteralNode* node){
 }
 
 void MainVisitor::visit(class VariableNode* node){
+	
 
-
-	// Already declared node
-	Value *V = vars[*(node->name)].first;
-
-	if(node->array_location != nullptr){
-		node->array_location->accept(this);
+	ret = nullptr;
+	// Create the variable if not defined
+	Value* elem_ptr = GEPFromLocationNode(node);
+	if (!elem_ptr) {
+		LogErrorV("elem_ptr is null!\n");
+		return;
 	}
-	ret = V;
+	if (vars[*(node->name)].second->isArrayTy() && node->array_location == nullptr) {
+		ret = elem_ptr;
+	} else {
+		ret = Builder.CreateLoad(elem_ptr, *(node->name) + (node->array_location != nullptr ? "[]" : ""));
+	}
 }
 
 
 
-void MainVisitor::visit(class VariableListNode* node){
-	for(auto x:node->variable_list)
+void MainVisitor::visit(class LocationListNode* node){
+	for(auto x:node->location_list)
 		x->accept(this);	
-
 }
+
 void MainVisitor::visit(class CallMethodNode* node){
 
 	
@@ -388,7 +410,7 @@ void MainVisitor::visit(class CallMethodNode* node){
 	if(node->name->compare("printf") == 0){
 		FunctionType *printf_prototype = FunctionType::get(
 			llvm::Type::getInt32Ty(Context),
-			{llvm::Type::getInt8PtrTy(Context)},
+			{llvm::Type::getInt8PtrTy(Context),llvm::Type::getInt32Ty(Context)},
 			false);
 		GetCallout("printf", printf_prototype, ArgsV);
 		return;
@@ -487,9 +509,6 @@ void MainVisitor::visit(class ClassNode* node){
 	node->block->accept(this);
 }
 void MainVisitor::visit(class FunctionNode* node){
-	// Print All functions for ast
-	node->parameter_list->accept(this);
-
 	// Parse all parameters and create an array of parameters for llvm
 	vector<llvm::Type*> param_types;
 	// For no parameters to function 
@@ -502,13 +521,14 @@ void MainVisitor::visit(class FunctionNode* node){
 
 		}
 	FunctionType *prototype = FunctionType::get(
-	TypeToLLVMType("v"),
+	TypeToLLVMType(*(node->return_type)),
 	param_types,
 	false);
 
-	Function *fn = Function::Create(prototype, Function::ExternalLinkage, node->name->c_str(), MainModule.get());
+	Function *fn = Function::Create(prototype, node->name->compare("main") == 0 ? Function::ExternalLinkage : Function::PrivateLinkage, node->name->c_str(), MainModule.get());
 	if (!fn) {
 		LogErrorV("Function prototype has nullptr value.\n");
+		ret = nullptr;
 		return;
 	}
 
@@ -521,22 +541,25 @@ void MainVisitor::visit(class FunctionNode* node){
 	if(node->parameter_list->parameter_list.size() > 0){
 		int idx = 0;
 		for (auto &arg : fn->args()) {
-			arg.setName(node->parameter_list->parameter_list[idx]->name->c_str()); // Set variable name
+			arg.setName(node->parameter_list->parameter_list[idx]->variable->name->c_str()); // Set variable name
 			auto type = prototype->getParamType(idx);
 			AllocaInst *alloca = CreateEntryBlockAlloca(fn, type, arg.getName());  // Allocate memory to variables
-			Builder.CreateStore(&arg, alloca); 
-			AddScopedVar(*(node->parameter_list->parameter_list[idx]->name), {alloca, type}, shadow_list); // Add to current list of variable
+			Builder.CreateStore(&arg, alloca);
+			AddScopedVar(*(node->parameter_list->parameter_list[idx]->variable->name), {alloca, type}, shadow_list); // Add to current list of variable
 			idx++;
 		}
 	}
-
 	// Create the bb required by the classes
 	node->block->accept(this);
 
 	// needed because every basic block *must* have a terminator
 	// the return statement has no semantic effect.
 	if (!CurrentBlockDone()) {
-		Builder.CreateRetVoid();
+		if( node->return_type->c_str()[0] == 'v')
+			Builder.CreateRetVoid();
+		else
+			GenErrorAndExitInst("\nruntime error: reached end of function with non-void return.\n");
+
 	}
 	verifyFunction(*fn, &errs());
 	// fn->print(errs());
@@ -547,15 +570,11 @@ void MainVisitor::visit(class FunctionNode* node){
 
 }
 void MainVisitor::visit(class AssignNode* node){
-
-	node->variable_name->accept(this);
-	node->value->accept(this);
-
-	Value *value; 
+	Value *value;
 	node->value->accept(this); 
 	value = ret;
-
-	Value *elem_ptr = GEPFromLocationNode(node->variable_name);
+	node->location->accept(this); 
+	Value *elem_ptr = GEPFromLocationNode(node->location->variable);
 
 	string op = *(node->op);
 
@@ -563,52 +582,39 @@ void MainVisitor::visit(class AssignNode* node){
 
 	}
 	else if( op.compare("+=") == 0  || op.compare("=+") == 0){
-		Value *cur_value = Builder.CreateLoad(elem_ptr, node->variable_name->name);
-		value = Builder.CreateAdd(cur_value, value, "plus_assign");
-	}
-	else if( op.compare("+=") == 0  || op.compare("=+") == 0){
-		Value *cur_value = Builder.CreateLoad(elem_ptr, node->variable_name->name);
+		Value *cur_value = Builder.CreateLoad(elem_ptr, node->location->variable->name);
 		value = Builder.CreateAdd(cur_value, value, "plus_assign");
 	}
 	else if( op.compare("-=") == 0  || op.compare("=-") == 0){
-		Value *cur_value = Builder.CreateLoad(elem_ptr, node->variable_name->name);
+		Value *cur_value = Builder.CreateLoad(elem_ptr, node->location->variable->name);
 		value = Builder.CreateSub(cur_value, value, "minus_assign");
 	}
 	else if( op.compare("*=") == 0  || op.compare("=*") == 0){
-		Value *cur_value = Builder.CreateLoad(elem_ptr, node->variable_name->name);
+		Value *cur_value = Builder.CreateLoad(elem_ptr, node->location->variable->name);
 		value = Builder.CreateMul(cur_value, value, "mul_assign");
 	}
 	else if( op.compare("/=") == 0  || op.compare("=/") == 0){
-		Value *cur_value = Builder.CreateLoad(elem_ptr, node->variable_name->name);
+		Value *cur_value = Builder.CreateLoad(elem_ptr, node->location->variable->name);
 		value = Builder.CreateAdd(cur_value, value, "div_assign");
 	}
 	else if( op.compare("%=") == 0  || op.compare("=%") == 0){
-		Value *cur_value = Builder.CreateLoad(elem_ptr, node->variable_name->name);
+		Value *cur_value = Builder.CreateLoad(elem_ptr, node->location->variable->name);
 		value = Builder.CreateSRem(cur_value, value, "mod_assign");
 	}
 	else{
 		std::cerr << "Unknown Assignment:" <<  op << "\n";
 	}
-
 	Builder.CreateStore(value, elem_ptr);
 	ret = value;
+
 }
 
 
 void MainVisitor::visit(class DeclarationNode* node){
-	node->variable_list->accept(this);
+	node->location_list->accept(this);
 }
-void MainVisitor::visit(class IfNode* node){
-	node->condition->accept(this);
-	node->block->accept(this);
-}
-void MainVisitor::visit(class ElseNode* node){
-	node->block->accept(this);
-}
+
 void MainVisitor::visit(class CondNode* node){
-	node->if_block->accept(this);
-	if(node->else_block->block != nullptr)
-		node->else_block->accept(this);
 
 	// Check the condition
 	Value *cond_value; 
@@ -639,6 +645,8 @@ void MainVisitor::visit(class CondNode* node){
 		Builder.CreateBr(merge_bb);
 	}
 
+	PHINode *PN = Builder.CreatePHI(then_value->getType(), 2, "iftmp");
+	PN->addIncoming(then_value, then_bb);
 
 	if (node->else_block->block != nullptr) {
 		CurrentFunction()->getBasicBlockList().push_back(else_bb);
@@ -653,11 +661,18 @@ void MainVisitor::visit(class CondNode* node){
 		if (!CurrentBlockDone()) {
 			Builder.CreateBr(merge_bb);
 		}
+	  	PN->addIncoming(else_value, else_bb);
 	}
 
 	CurrentFunction()->getBasicBlockList().push_back(merge_bb);
 	Builder.SetInsertPoint(merge_bb);
+	if (!CurrentBlockDone()) {
+		Builder.CreateBr(merge_bb);
+	}
+
+  	ret = PN;
 }
+
 void MainVisitor::visit(class WhileNode* node){
 	VarTable shadow_list;
 
@@ -702,18 +717,14 @@ void MainVisitor::visit(class WhileNode* node){
 void MainVisitor::visit(class ForNode* node){
 
 
-	string loop_name = *(node->assign->variable_name->name); // For later reference
+	string loop_name = *(node->assign->location->variable->name); // For later reference
 	
 	// Allocate memory to the new variable
 	VarTable shadow_list;
-	AllocaInst* i_alloca = CreateEntryBlockAlloca(CurrentFunction(), llvm::Type::getInt32Ty(Context), loop_name);
-	AddScopedVar(loop_name, {i_alloca, TypeToLLVMType( *(node->assign->variable_name->datatype) )}, shadow_list);
-
 	// Get the assignment value to compare
 	Value* start_value;
-	node->assign->value->accept(this);
+	node->assign->accept(this);
 	start_value = ret;
-	Builder.CreateStore(start_value, i_alloca);
 
 	if (!start_value) {
 		LogErrorV("For loop initilization failed,start value is null!\n");
@@ -726,9 +737,6 @@ void MainVisitor::visit(class ForNode* node){
 	BasicBlock *for_bb = BasicBlock::Create(Context, "for_" + loop_name , CurrentFunction());
 	for_internal_bb = BasicBlock::Create(Context, "for_internal_" + loop_name);
 	for_after_bb = BasicBlock::Create(Context, "for_after_" + loop_name);
-
-
-
 
 	Value* end_value; 
 	node->expr->accept(this);
@@ -753,7 +761,7 @@ void MainVisitor::visit(class ForNode* node){
 	Builder.SetInsertPoint(for_internal_bb);
 	node->update->accept(this);
 	Value* i_val = ret;
-	Builder.CreateStore(i_val, i_alloca);
+	Builder.CreateStore(i_val, vars[loop_name]);
 	Builder.CreateCondBr(end_value,for_bb, for_after_bb);
 
 	CurrentFunction()->getBasicBlockList().push_back(for_after_bb);

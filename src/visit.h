@@ -47,15 +47,14 @@ class MainVisitor: public Visitor{
 		// Visitor for each node
 		void visit(class RootNode*);
 		void visit(class BlockNode*);
-		void visit(class ParameterNode*);
+		void visit(class LineNode*){};
 		void visit(class ParameterListNode*);
 		void visit(class LocationNode*);
-		void visit(class LineNode*);
-		void visit(class ExprNode*);
+		void visit(class ExprNode*){};
 		void visit(class ExprListNode*);
 		void visit(class LiteralNode*);
 		void visit(class VariableNode*);
-		void visit(class VariableListNode*);
+		void visit(class LocationListNode*);
 		void visit(class CallMethodNode*);
 		void visit(class BinaryOperationNode*);
 		void visit(class NotOperationNode*);
@@ -64,8 +63,8 @@ class MainVisitor: public Visitor{
 		void visit(class FunctionNode*);
 		void visit(class AssignNode*);
 		void visit(class DeclarationNode*);
-		void visit(class IfNode*);
-		void visit(class ElseNode*);
+		void visit(class IfNode*){};
+		void visit(class ElseNode*){};
 		void visit(class CondNode*);
 		void visit(class WhileNode*);
 		void visit(class ForNode*);
@@ -79,7 +78,7 @@ class MainVisitor: public Visitor{
 	private:
 
 		// Find location of a node variable 
-		llvm::Value* GEPFromLocationNode(LocationNode *node);		
+		llvm::Value* GEPFromLocationNode(VariableNode *node);		
 
 		// Variables 
   		// llvm::Type* TypeToLLVMType(Type t); // Convert each variable to LLVM format

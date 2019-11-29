@@ -14,45 +14,42 @@ void BlockNode::push_back(class LineNode* line){
 	this->line_list.push_back(line);
 }
 
-// Parameter for function and classes
-ParameterNode::ParameterNode(string* datatype, string* name){
-	this->datatype = datatype;
-	this->name = name;
-}
+void ParameterListNode::push_back(string* datatype, string* name, bool is_array){
 
-void ParameterListNode::push_back(string* datatype, string* name){
-
-	class ParameterNode* par = new ParameterNode(datatype,name);
+	class LocationNode* par = new LocationNode(datatype,name);
+	par->variable->is_array = is_array;
 	this->parameter_list.push_back(par);
 
 }
 
-// Define varaiable already declared
+// Define variable already declared
 LocationNode::LocationNode(string* name){
-	this->name = name;
+	this->variable = new VariableNode(name,false);
+	this->array_size = -1;
 }
 
-// Define varaiable already declared
-LocationNode::LocationNode(string* name,class ExprNode* expr){
-	this->name = name;
-	this->array_location = array_location;
+// Define variable already declared
+LocationNode::LocationNode(string* name,int array_size){
+	this->variable = new VariableNode(name,true);
+	this->array_size = array_size;
 }
 
-// Define varaiable already declared
+// Define variable already declared
 LocationNode::LocationNode(string* datatype,string* name){
 	this->datatype = datatype;
-	this->name = name;
+	this->variable = new VariableNode(name,false);
+	this->array_size = -1;
 }
 
-// Define varaiable already declared
-LocationNode::LocationNode(string* datatype,string* name, class ExprNode* expr){
+// Define variable already declared
+LocationNode::LocationNode(string* datatype,string* name,int array_size){
 	this->datatype = datatype;
-	this->name = name;
-	this->array_location = expr;
+	this->variable = new VariableNode(name,true);
+	this->array_size = array_size;
 }
 
 // Import 
-ImportNode::ImportNode(class VariableListNode* import_list){
+ImportNode::ImportNode(class ExprListNode* import_list){
 	this->import_list = import_list;
 }
 
@@ -65,8 +62,9 @@ ClassNode::ClassNode(string* name, class BlockNode* block){
 
 
 // Function Nodes
-FunctionNode::FunctionNode(string* name, class ParameterListNode* parameter_list, class BlockNode* block){
+FunctionNode::FunctionNode(string* return_type, string* name, class ParameterListNode* parameter_list, class BlockNode* block){
 	this->name = name;
+	this->return_type = return_type;
 	this->parameter_list = parameter_list;	
 	this->block = block;
 }
@@ -76,8 +74,11 @@ ReturnNode::ReturnNode(class ExprNode* expr){
 }
 
 // Declaration 
-DeclarationNode::DeclarationNode(class VariableListNode* variable_list){
-	this->variable_list = variable_list;
+DeclarationNode::DeclarationNode(string* datatype,class LocationListNode* location_list){
+	this->location_list = location_list;
+	for(auto x : this->location_list->location_list)
+		x->datatype = datatype;
+
 }
 
 // Expresssion Nodes
@@ -106,8 +107,8 @@ LiteralNode::LiteralNode(string* s){
 }
 
 // Variables
-VariableNode::VariableNode(string* name){
-	this->is_array = false;
+VariableNode::VariableNode(string* name,bool is_array){
+	this->is_array = is_array;
 	this->name = name;
 }
 
@@ -118,15 +119,15 @@ VariableNode::VariableNode(string* name,class ExprNode* array_location)
 	this->array_location = array_location;
 }
 
-void VariableListNode::push_back(string* name){
-	class VariableNode* v = new VariableNode(name);
-	this->variable_list.push_back(v);
+void LocationListNode::push_back(string* name){
+	class LocationNode* v = new LocationNode(name);
+	this->location_list.push_back(v);
 }
 
-void VariableListNode::push_back(string* name, class ExprNode* array_location){
+void LocationListNode::push_back(string* name, int array_size){
 
-	class VariableNode* v = new VariableNode(name,array_location);
-	this->variable_list.push_back(v);
+	class LocationNode* v = new LocationNode(name,array_size);
+	this->location_list.push_back(v);
 }
 
 // Function Calls
@@ -187,8 +188,8 @@ NotOperationNode::NotOperationNode(class ExprNode* expr){
 }
 
 // Assign Variable
-AssignNode::AssignNode(class LocationNode* variable_name,string* op,class ExprNode* expr){
-	this->variable_name = variable_name;
+AssignNode::AssignNode(class LocationNode* location,string* op,class ExprNode* expr){
+	this->location = location;
 	this->op = op;
 	this->value = expr;
 

@@ -10,33 +10,33 @@ string ptab = "";
 
 // Root node containing the main blocks
 void SemanticVisitor::visit(class RootNode* node){
-	printf("===============================Semantic Generated ===========================\n");
-	printf("%sRootNode\n",ptab.c_str());
+	printf("===============================Semantic Generated============================\n");
+	printf("%sRootNode",ptab.c_str());
 	node->block->accept(this);
+	printf("\n");
 	printf("=============================================================================\n");
 
 }
 
 void SemanticVisitor::visit(class BlockNode* node){
 	// Iterate over all root node lines 
+	ptab.push_back('\t');
 	for (auto x : node->line_list){ 
+		printf("\n%s",ptab.c_str());
 		x->accept(this);
-		printf("\n%s");
+
 	}
+	ptab.pop_back();
 }
-void SemanticVisitor::visit(class ParameterNode* node){
-	// Print all parameters in a line
-	printf(" %s %s,",node->datatype->c_str(),node->name->c_str());
-}
+
 
 void SemanticVisitor::visit(class ParameterListNode* node){
 	// Call parameters list
 	ptab.push_back('\t');
-	printf("%sParameterListNode:",ptab.c_str());
+	printf("\n%sParameterListNode:",ptab.c_str());
 	for (auto x : node->parameter_list){ 
 		x->accept(this);
 	}
-	printf("\n");
 	ptab.pop_back();
 }
 void SemanticVisitor::visit(class LocationNode* node){
@@ -44,13 +44,10 @@ void SemanticVisitor::visit(class LocationNode* node){
 	if(node->datatype != nullptr)
 		printf("%s ",node->datatype->c_str());
 
-	printf("%s",node->name->c_str());
+	node->variable->accept(this);
 
-	if(node->array_location != nullptr){
-		printf("[");
-		node->array_location->accept(this);	
-		printf("]");
-	}
+	if(node->array_size != -1)
+		printf("[%d]",node->array_size);
 
 }
 void SemanticVisitor::visit(class LineNode* node){
@@ -62,6 +59,7 @@ void SemanticVisitor::visit(class ExprNode* node){
 void SemanticVisitor::visit(class ExprListNode* node){
 	for (auto x : node->expr_list){ 
 		x->accept(this);
+		printf(",");
 	}
 }
 
@@ -90,8 +88,8 @@ void SemanticVisitor::visit(class VariableNode* node){
 	}
 	printf(",");
 }
-void SemanticVisitor::visit(class VariableListNode* node){
-	for(auto x:node->variable_list)
+void SemanticVisitor::visit(class LocationListNode* node){
+	for(auto x:node->location_list)
 		x->accept(this);	
 }
 void SemanticVisitor::visit(class CallMethodNode* node){
@@ -114,101 +112,73 @@ void SemanticVisitor::visit(class NotOperationNode* node){
 	node->expr->accept(this);
 }
 void SemanticVisitor::visit(class ImportNode* node){
-	ptab.push_back('\t');
-	printf("%sImportNode\n",ptab.c_str());
-	ptab.pop_back();
+	printf("ImportNode");
 }
 void SemanticVisitor::visit(class ClassNode* node){
-	ptab.push_back('\t');
-	printf("%sClassNode %s: \n",ptab.c_str(),node->name->c_str());
+	printf("ClassNode %s: ",node->name->c_str());
 	node->block->accept(this);
-	ptab.pop_back();
 }
 void SemanticVisitor::visit(class FunctionNode* node){
-	ptab.push_back('\t');
-	printf("%sFunctionNode %s: \n",ptab.c_str(),node->name->c_str());
+	printf("FunctionNode %s %s: ",node->return_type->c_str(), node->name->c_str());
 
 	// Print All functions for ast
 	node->parameter_list->accept(this);
 	// Create the bb required by the classes
 	node->block->accept(this);
-	ptab.pop_back();
 }
 void SemanticVisitor::visit(class AssignNode* node){
-	ptab.push_back('\t');
 	// Print defination
-	printf("%sAssignNode:",ptab.c_str());
-	node->variable_name->accept(this);
+	printf("AssignNode: ");
+	node->location->accept(this);
 	printf(" %s ",node->op->c_str());
 	node->value->accept(this);
-	printf("\n");
-	ptab.pop_back();
 }
 void SemanticVisitor::visit(class DeclarationNode* node){
-	ptab.push_back('\t');
-	printf("%sDeclarationNode: ",ptab.c_str());
-	node->variable_list->accept(this);
-	printf("\n");
-	ptab.pop_back();
+	printf("DeclarationNode: ");
+	node->location_list->accept(this);
 }
 void SemanticVisitor::visit(class IfNode* node){
-	ptab.push_back('\t');
-	printf("%sIfNode:",ptab.c_str());
+	printf("\n%sIfNode: ",ptab.c_str());
 	node->condition->accept(this);
-	printf("\n");
 	node->block->accept(this);
-	ptab.pop_back();
 }
 void SemanticVisitor::visit(class ElseNode* node){
-	ptab.push_back('\t');
-	printf("%sElseNode:\n",ptab.c_str());
+	printf("\n%sElseNode:",ptab.c_str());
 	node->block->accept(this);
-	ptab.pop_back();
 }
 void SemanticVisitor::visit(class CondNode* node){
-	ptab.push_back('\t');
-	printf("%sCondNode\n",ptab.c_str());
+	printf("CondNode:");
 
 	node->if_block->accept(this);
 	if(node->else_block->block != nullptr)
 		node->else_block->accept(this);
-	ptab.pop_back();
 }
 void SemanticVisitor::visit(class WhileNode* node){
-	ptab.push_back('\t');
-	printf("%sWhileNode: ",ptab.c_str());
+	printf("WhileNode: ");
 	node->expr->accept(this);
-	printf("\n");
 	node->block->accept(this);
-	ptab.pop_back();
 }
 void SemanticVisitor::visit(class ForNode* node){
+	printf("ForNode:");
 	ptab.push_back('\t');
-	printf("%sForNode:\n",ptab.c_str());
+	printf("\n%s",ptab.c_str());
 	node->assign->accept(this);
-	printf("%s\tEndStep:",ptab.c_str());
+	printf("\n%sEndStep:",ptab.c_str());
 	node->expr->accept(this);
-	printf("\n");
+	printf("\n%s",ptab.c_str());
 	node->update->accept(this);
-	printf("\n");
+	printf("\n%sLoop Block",ptab.c_str());
 	node->block->accept(this);
 	ptab.pop_back();
 }
 void SemanticVisitor::visit(class ReturnNode* node){
-	ptab.push_back('\t');
-	printf("%sReturnNode:",ptab.c_str());
+	printf("ReturnNode: ");
 	if(node->expr != nullptr) 
 		node->expr->accept(this);
-	printf("\n");
-	ptab.pop_back();
 }
 void SemanticVisitor::visit(class ContinueNode* node){
-	ptab.push_back('\t');
-	printf("%sContinueNode\n",ptab.c_str());
-	ptab.pop_back();
+	printf("ContinueNode");
 }
 void SemanticVisitor::visit(class BreakNode* node){
-	ptab.push_back('\t');
-	printf("%sBreakNode\n",ptab.c_str());
-	ptab.pop_back();
+	printf("BreakNode");
 }
