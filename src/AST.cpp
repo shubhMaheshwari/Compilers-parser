@@ -25,11 +25,11 @@ void ParameterListNode::push_back(string* datatype, string* name, bool is_array)
 // Define variable already declared
 LocationNode::LocationNode(string* name){
 	this->variable = new VariableNode(name,false);
-	this->array_size = -1;
+	this->array_size = NULL;
 }
 
 // Define variable already declared
-LocationNode::LocationNode(string* name,int array_size){
+LocationNode::LocationNode(string* name,class ExprNode* array_size){
 	this->variable = new VariableNode(name,true);
 	this->array_size = array_size;
 }
@@ -38,11 +38,11 @@ LocationNode::LocationNode(string* name,int array_size){
 LocationNode::LocationNode(string* datatype,string* name){
 	this->datatype = datatype;
 	this->variable = new VariableNode(name,false);
-	this->array_size = -1;
+	this->array_size = NULL;
 }
 
 // Define variable already declared
-LocationNode::LocationNode(string* datatype,string* name,int array_size){
+LocationNode::LocationNode(string* datatype,string* name,class ExprNode* array_size){
 	this->datatype = datatype;
 	this->variable = new VariableNode(name,true);
 	this->array_size = array_size;
@@ -124,7 +124,7 @@ void LocationListNode::push_back(string* name){
 	this->location_list.push_back(v);
 }
 
-void LocationListNode::push_back(string* name, int array_size){
+void LocationListNode::push_back(string* name, class ExprNode* array_size){
 
 	class LocationNode* v = new LocationNode(name,array_size);
 	this->location_list.push_back(v);

@@ -90,6 +90,7 @@ void yyerror(string s){
 "string" {yylval.lit = new string(yytext, yyleng) ;return STRING_DATA_TYPE;}
 
 "bool" {yylval.lit = new string(yytext, yyleng) ;return BOOL_DATA_TYPE;} /* Boolean Datatypes statements */
+"void" {yylval.lit = new string(yytext, yyleng) ;return VOID_DATA_TYPE;} /* VOID Datatypes statements */
 
 "def" {yylval.lit = new string(yytext, yyleng) ;return FUNCTION_DEC;}
 "return" {yylval.lit = new string(yytext, yyleng) ;return RETURN;}

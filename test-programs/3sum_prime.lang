@@ -1,0 +1,29 @@
+// Given a number N return the sum all prime numbers before N  
+
+// Declare/Define functions 
+import scan;
+import print;
+import checkPrime;
+
+
+int main(){
+	int N; 
+	scanf("%s",N);
+
+	if(N <= 0){
+		printf("[Error]: N has to be positive. Can't find prime of non-positive number\n");
+		return 0;
+	}
+	else{		
+		int total = 0;  
+		for(int i=0; i<N; i = i + 1)
+			if(checkPrime(i))
+				total = total + i;
+			;
+		;
+		print("Total Value:%d\n",total);
+		return 0;
+	};
+
+};
+

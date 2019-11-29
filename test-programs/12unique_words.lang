@@ -1,0 +1,85 @@
+// Write a C program to list all the unique words in a file
+
+//Define and Import functions 
+import print;
+import read; 
+import length; 
+import append; 
+import charToString;
+
+
+int createSring(int A[], int l, int r){
+	char newStr[ 100 ]; 
+
+	for(int i=l ; i < r+1 ; i +=1){
+		newStr = append(newStr,A[ i ]);
+	};
+
+	return charToString(newStr);
+};
+
+int checkSameStrings(int A[], int l, int r, string str){
+	
+	int lengthr = length(str);
+
+	if(r-l+1 != lengthr)
+		return 0;
+	;
+
+	for(int i=0; i<lengthr ;i=i+1)
+		if(A[ l+i ]!=str[ i ])
+			return 0;
+		;
+	;
+	return 1;
+};
+
+int checkSameStringsFromList(int A[], int l, int r, int charList){
+	
+	int length = length(charList);
+
+	for(int i=0;i<length;i=i+1)
+		if(checkSameStrings(A,l,r,charList[ i ]))
+			return 0;
+		;
+	;
+	return 1;
+
+};
+
+int uniqueWords(int A[]){
+	int len = length(A);
+
+	string charList[ 100 ];
+	int startInd = 0;
+
+	for(int i=0;i<len;i+=1){
+
+		if(i == " "){
+			if(!checkSameStringsFromList(A,startInd,i,charList))
+				charList = append(charList,createSring(A,startInd,i));
+			;
+			startInd = i;
+		};
+	};
+
+	return charList;
+};
+
+
+int main(){
+	string filepath;
+		
+	string A = read(filedata);
+
+	string charList[ 100 ]; 
+	charList = uniqueWords(A);
+
+	printf("The Unique words in the string are as follows:\n");
+
+	for(int i=0;i<length(charList);i = i+1){
+		print(charList[ i ]);
+		print("\n");	
+	};
+
+};

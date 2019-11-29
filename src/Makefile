@@ -7,4 +7,4 @@ parser: scanner.l parser.y
 	g++ -g -Wall -o parser lex.yy.c parser.tab.c AST.cpp SemanticVisitor.cpp visit.cpp  $(CFLAGS) -std=c++14
 	./test.sh
 clean:
-	rm lex.yy.c parser.tab.c parser.tab.h parser.output parser compiled_file output.o
+	rm lex.yy.c parser.tab.c parser.tab.h parser.output parser

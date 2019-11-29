@@ -1,0 +1,38 @@
+// Given a number N check if it is a prime number 
+
+// Declare/Define functions 
+import scan;
+import print;
+
+int check(){
+	int N; 
+	scan( N );
+
+	if(N <= 0){
+		printf("[Error]: N has to be positive. Can't find prime of non-positive number\n"); 
+		return 0;
+	}
+	else{
+		int i; 
+		for(i=0 ;i*i < N; i = i + 1)
+			if(N%i == 0)
+				break;
+			;
+		;
+
+		if(i*i >= N){
+			printf("N is a prime number\n");
+			return 1;
+		}
+		else{ 
+			printf("N is not a prime number\n");
+			return 0;
+		};
+	};
+};
+
+int main()
+{
+	check(7);	
+	return 0;
+};

@@ -240,12 +240,12 @@ class LocationNode:public BaseNode{
 
 		string* datatype;
 		class VariableNode* variable;
-		int array_size; 
+		class ExprNode* array_size; 
 
 		LocationNode(string*);
-		LocationNode(string*, int);
+		LocationNode(string*, class ExprNode*);
 		LocationNode(string*,string*);
-		LocationNode(string*,string*, int);
+		LocationNode(string*,string*, class ExprNode*);
 };
 
 
@@ -309,7 +309,7 @@ class LocationListNode:public ExprNode{
 		LocationListNode(){};
 
 		void push_back(string*); 
-		void push_back(string*, int); 
+		void push_back(string*, class ExprNode*); 
 };
 
 class CallMethodNode:public ExprNode{

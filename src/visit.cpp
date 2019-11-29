@@ -31,7 +31,7 @@ unsigned int while_loop_number=0;
 // Method to log errors
 Value *LogErrorV(const char *Str) {
   fprintf(stderr,"[CodeGenerationError]:%s\n",Str);
- 	
+  exit(0); 	
   return nullptr;
 }
 
@@ -327,10 +327,10 @@ void MainVisitor::visit(class LocationNode* node){
 	}
 	GlobalVariable *ptr;
 	if (node->variable->is_array) {
-		type = ArrayType::get(type, node->array_size);
+		type = ArrayType::get(type, 1000);
 		ptr = (GlobalVariable*) MainModule->getOrInsertGlobal(*(node->variable->name), type);
 		ptr->setInitializer(ConstantArray::get((llvm::ArrayType*)type,
-		ArrayRef<Constant *>(std::vector<Constant*> (node->array_size, constant ))));
+		ArrayRef<Constant *>(std::vector<Constant*> (1000, constant ))));
 
 	} else {
 		ptr = (GlobalVariable*) MainModule->getOrInsertGlobal(*(node->variable->name), type);
@@ -759,9 +759,10 @@ void MainVisitor::visit(class ForNode* node){
 	}
 	CurrentFunction()->getBasicBlockList().push_back(for_internal_bb);
 	Builder.SetInsertPoint(for_internal_bb);
+
 	node->update->accept(this);
 	Value* i_val = ret;
-	Builder.CreateStore(i_val, vars[loop_name]);
+	Builder.CreateStore(i_val, GEPFromLocationNode(node->assign->location->variable));
 	Builder.CreateCondBr(end_value,for_bb, for_after_bb);
 
 	CurrentFunction()->getBasicBlockList().push_back(for_after_bb);

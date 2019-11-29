@@ -1,6 +1,0 @@
-class Program {
-  int input[5];
-  int main() {
-    return input[5];
-  }
-}

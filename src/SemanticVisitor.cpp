@@ -46,8 +46,11 @@ void SemanticVisitor::visit(class LocationNode* node){
 
 	node->variable->accept(this);
 
-	if(node->array_size != -1)
-		printf("[%d]",node->array_size);
+	if(node->array_size != NULL){
+		printf("[");
+		node->array_size->accept(this);
+		printf("]");
+	}
 
 }
 void SemanticVisitor::visit(class LineNode* node){

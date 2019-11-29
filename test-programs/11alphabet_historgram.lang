@@ -1,0 +1,38 @@
+//  Write a program to compute the alphabet  in given English language text
+//Define and Import functions 
+import print;
+import file; 
+import length; 
+
+int histogram( int A ){
+	int len = length(A);
+
+	int hist[ 128 ];
+
+	for( int i=0 ; i<len ; i+=1)
+		hist[ A[ i ] ] = hist[ A[ i ] ] + 1; // Assuming the character are not out of ascii. And each char is mapped to int from ascii range.  
+	;
+
+	return hist;
+};
+
+
+int main(){
+	string filepath;
+		
+	string A = file(filedata);
+
+	int hist[ 128 ];
+
+	hist = histogram( A );
+
+	printf("Histogram of words of file");
+
+	for(int i=0; i< length( hist ); i = i+1){
+		print('a'+i);
+		print(":");
+		print(hist[ i ]);
+		print("\n");
+	};
+
+};

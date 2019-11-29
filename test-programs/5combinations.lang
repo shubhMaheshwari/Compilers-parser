@@ -1,0 +1,22 @@
+// question 5
+void recurse( int a, int acc ){
+
+    if( a == n ){
+        printf("%d\n",acc);
+        return;
+    };    
+	for( int i = 0; i < a ; i += 1 ){
+        printf(i);
+        recurse(n - i);
+    };
+};
+
+void combinations(int n) {
+    recurse(n, "");
+};
+
+int main(int x){
+	int N = 10;
+	combinations(N);
+
+};   

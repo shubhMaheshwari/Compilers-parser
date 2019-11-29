@@ -38,7 +38,7 @@ int errors=0;
 
 %token <lit> CHAR_DATA_TYPE STRING_DATA_TYPE/* Character Datatypes statements */
 
-%token <lit> BOOL_DATA_TYPE /* Boolean Datatypes statements */
+%token <lit> BOOL_DATA_TYPE  VOID_DATA_TYPE/* Boolean Datatypes statements */
 
 %token <lit> ID
 
@@ -160,9 +160,9 @@ Assign: Location Assign_Op Expr {$$ = new AssignNode($1,$2,$3);}
 ;
 
 Location: ID 									{$$ = new LocationNode($1);}
-| ID OPEN_BRACKET INT CLOSE_BRACKET			{$$ = new LocationNode($1,$3);}
+| ID OPEN_BRACKET Expr CLOSE_BRACKET			{$$ = new LocationNode($1,$3);}
 | Datatype ID 									{$$ = new LocationNode($1,$2);}
-| Datatype ID OPEN_BRACKET INT CLOSE_BRACKET 	{$$ = new LocationNode($1,$2,$4);}
+| Datatype ID OPEN_BRACKET Expr CLOSE_BRACKET 	{$$ = new LocationNode($1,$2,$4);}
 ;
 
 Assign_Op: ASSIGN 	{$$ = $1;}
@@ -227,13 +227,14 @@ Datatype: INT_DATA_TYPE {$$ = $1;}
 | CHAR_DATA_TYPE 		{$$ = $1;}
 | STRING_DATA_TYPE 		{$$ = $1;}
 | BOOL_DATA_TYPE 		{$$ = $1;}
+| VOID_DATA_TYPE		{$$ = $1;}
 ;
 
 
 ID_LIST: /* Do nothing */ {$$ = new LocationListNode();}
 | ID_LIST COMMA ID   {$$ = $1; $$->push_back($3);}
-| ID_LIST COMMA ID OPEN_BRACKET INT CLOSE_BRACKET {$$ = $1; $$->push_back($3,$5);}
-| ID OPEN_BRACKET INT CLOSE_BRACKET {$$ = new LocationListNode(); $$->push_back($1,$3);} 
+| ID_LIST COMMA ID OPEN_BRACKET Expr CLOSE_BRACKET {$$ = $1; $$->push_back($3,$5);}
+| ID OPEN_BRACKET Expr CLOSE_BRACKET {$$ = new LocationListNode(); $$->push_back($1,$3);} 
 | ID {$$ = new LocationListNode();$$->push_back($1);}
 ;
 

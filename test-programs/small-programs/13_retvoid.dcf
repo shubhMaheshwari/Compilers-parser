@@ -1,6 +1,0 @@
-class Program {
-  int input[100];
-  int main() {
-    callout("printf", input);
-  }
-}

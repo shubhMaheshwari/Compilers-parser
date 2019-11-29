@@ -1,0 +1,28 @@
+// question 10
+
+import read
+
+matrix 1000 1000 matA
+matrix 1000 1000 matB
+matrix 1000 1000 matC
+
+nA = read()
+mA = read()
+nB = read()
+mB = read()
+
+for (i; 1, i=i+1, i<=nA)
+    for (j; 1, j=j+1, j<=mA)
+        matA[i][j] = read()
+
+for (i; 1, i=i+1, i<=nB)
+    for (j; 1, j=j+1, j<=mB)
+        matB[i][j] = read()
+
+if mA != nB
+    print("Matrices not addable.")
+else
+    for (k; 1, k=k+1, k<=mA)
+	    for (i; 1, i=i+1, i<=nA)
+            for (j; 1, j=j+1, j<=mB)
+                matC[i][j] = matA[i][k] * matB[k][j]

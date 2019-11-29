@@ -1,0 +1,23 @@
+// question 4
+
+int main()
+{
+	for(int z=1;z <= 100000000; z = z + 1)
+		for (int x=1; x <= z; x = x + 1){
+		    int y = -1; 
+		    while( (x*x + y*y != z*z) && (y < z-x))
+		        y = y + 1;
+		   	;
+
+		    if(y != -1){
+		    	x+=1;
+		    	y+=1;
+		    	z+=1;
+		        printf("%d %d %d\n",x,y,z);
+		    };
+		}; 
+    ;
+
+	
+	return 0;
+};

@@ -1,0 +1,55 @@
+// Given a list of array sort the array in O(N*N) time
+
+// Declare/Define functions 
+import print;
+import scan;
+import length;  
+import MAX; 					// Predefined in our language
+
+int swap(int A[], int l, int r){
+	int val; 
+	val = A[ l ];
+	A[ l ] = A[ r ];
+	A[ r ] = val;
+
+	return A;
+}; 
+
+int minimumValueIndex( int A[], int i, int len ){
+
+	int minVal = MAX;
+	int minInd = -1;
+
+	for(i = i;i<len;i=i+1)
+		if(minVal > A[ i ]){ 
+			minVal = A[ i ];
+			minInd = i;
+		};
+	;
+
+	return minInd;	
+};
+
+
+int Sort(int A[]){
+	
+	int len = length(A);
+
+	for(int i=0;i<len;i=i+1){
+		minInd = minimumValueIndex(A,i,len);
+		A = swap(A,minInd,i);
+	};
+
+	return A;
+};
+
+int main(){
+	int A[ 100 ];
+	scanf("%s",A);
+	
+	int length = length(A);
+	A = Sort(A,0,length);
+	printf(A);
+
+	return 0;
+};
